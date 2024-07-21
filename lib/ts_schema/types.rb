@@ -211,5 +211,52 @@ module TSSchema
         end
       end
     end
+
+    module RBS
+      class << self
+        # @param class_name [Symbol] e.g. :Exhaustive
+        # @param method_name [Symbol] e.g. :model_overridden
+        def from(class_name, method_name)
+          @loader ||= begin
+            ::RBS::EnvironmentLoader.new.tap do |l|
+              l.add(path: Rails.root.join("sig"))
+            end
+          end
+          @env ||= ::RBS::Environment.from_loader(@loader).resolve_type_names
+
+          klass = ::RBS::TypeName.new(name: class_name, namespace: ::RBS::Namespace.root)
+          return Types::Unknown unless @env.class_decls[klass]
+
+          @builder ||= ::RBS::DefinitionBuilder.new(env: @env)
+          instance = @builder.build_instance(klass)
+
+          method_types = instance.methods[method_name].method_types
+          return Types::Unknown unless method_types.length == 1
+          return_type = method_types.first.type.return_type
+          from_rbs_type(return_type)
+        end
+
+        private
+
+        def from_rbs_type(type)
+          case type
+          when ::RBS::Types::ClassInstance then from_class_instance(type)
+          when ::RBS::Types::Literal then Types::Literal.new(type.to_param)
+          else Types::Unknown
+          end
+        end
+
+        def from_class_instance(type)
+          case type.to_param
+          when "::String" then Types::String
+          when "::Integer" then Types::Number
+          when "::Float" then Types::Number
+          when "::BigDecimal" then Types::String
+          when "::Boolean" then Types::Boolean
+          else Types::Unknown
+          end
+        end
+      end
+    end
   end
 end

@@ -82,10 +82,20 @@ module TSSchema
 
             model_method_defined = _model_class.method_defined?(model_method.to_sym)
             resource_method_defined = @_method_added_count[resource_method.to_sym] > 1
-            method_defined = model_method_defined || resource_method_defined
 
-            column = !method_defined && _model_class.try(:columns_hash).try(:[], model_method.to_s)
-            column ? Types::SQL.from(column) : Types::Unknown
+            if resource_method_defined
+              Types::RBS.from(self.name.to_sym, resource_method)
+            elsif model_method_defined
+              Types::RBS.from(_model_class.name.to_sym, model_method.to_sym)
+            elsif (column = _model_class.try(:columns_hash).try(:[], model_method.to_s))
+              Types::SQL.from(column)
+            else
+              # TODO: I believe hitting this branch implies the attribute
+              # doesn't have a method and would cause a 500 if queried for
+              # unless the method is added to the model/resource at runtime?
+              # Maybe use Types::Never instead.
+              Types::Unknown
+            end
           end
 
           Types::Property.new(attr, type)

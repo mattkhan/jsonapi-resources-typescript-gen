@@ -29,3 +29,5 @@ end
 
 gem "jsonapi-resources", "~> 0.10.7"
 gem "jsonapi-resources-typescript-gen", ">= 0.0.0.pre", path: ".."
+
+gem "rbs", "~> 3.5"
