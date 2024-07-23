@@ -85,8 +85,15 @@ module TSSchema
               resource_method_defined = @_method_added_count[resource_method.to_sym] > 1
               method_defined = model_method_defined || resource_method_defined
 
+              enum = !method_defined && _model_class.try(:defined_enums).try(:[], model_method.to_s)
               column = !method_defined && _model_class.try(:columns_hash).try(:[], model_method.to_s)
-              if column
+              if enum
+                name = "#{schema_name}#{attr.to_s.camelize}Enum"
+                Class.new(TSSchema::Types::Enum) do
+                  schema_name name
+                  enum.each { |key, val| value key, val }
+                end
+              elsif column
                 type = Types::SQL.from(column)
                 check_presence = type.is_a?(Types::Maybe) && TSSchema.config.use_active_record_presence
                 if check_presence && _model_class.validators_on(model_method).any? { |v| v.is_a?(ActiveRecord::Validations::PresenceValidator) }

@@ -18,7 +18,7 @@ export type User = {
   id: number;
   type: "users";
   name: string;
-  role: UserRole;
+  role: UserRoleEnum;
   relationships: {
     comments: Array<Comment>;
     posts: Array<Post>;
