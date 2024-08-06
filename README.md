@@ -1,5 +1,7 @@
 # JSON:API Resource Schema Generation: Anchor
 
+![Example Schema Snapshot Test](https://github.com/mattkhan/jsonapi-resources-anchor/actions/workflows/example_minitest.yml/badge.svg)
+
 Easily generate TypeScript schemas, JSON Schemas, or any schema of your choice
 from [cerebris/jsonapi-resources](https://github.com/cerebris/jsonapi-resources)
 `JSONAPI::Resource` classes.
